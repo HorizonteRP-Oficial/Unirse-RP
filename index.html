@@ -36,37 +36,52 @@
 </head>
 <body>
     <div class="container">
-        <div class="spinner"></div>
+        <div id="spinner" class="spinner"></div>
         <h1>HORIZONTE ROLEPLAY</h1>
-        <p>Iniciando Roblox, por favor espera...</p>
+        <p id="status">Iniciando Roblox, por favor espera...</p>
     </div>
 
     <script>
-        // 1. Extraemos los parámetros de acceso inmediatamente
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const placeId = urlParams.get('placeId');
         const linkCode = urlParams.get('linkCode');
+        const expires = urlParams.get('expires');
 
-        // 2. ¡BORRAMOS los parámetros de la barra de direcciones del navegador al instante!
-        // Esto evita que los usuarios puedan copiar y pegar la URL para filtrarla.
+        // Borramos los parámetros de la barra de direcciones al instante para que no los copien
         window.history.replaceState({}, document.title, window.location.pathname);
 
-        let robloxUri = "";
-
-        if (code) {
-            robloxUri = `roblox://navigation/share_links?code=${code}&type=Server`;
-        } else if (placeId && linkCode) {
-            robloxUri = `roblox://experiences/start?placeId=${placeId}&linkCode=${linkCode}`;
+        function showError(message) {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('status').innerText = message;
+            document.getElementById('status').style.color = '#ff4d4d';
         }
 
-        if (robloxUri) {
-            window.location.href = robloxUri;
-            setTimeout(() => {
-                window.location.href = robloxUri;
-            }, 2000);
+        if (expires) {
+            // Validar si el enlace ya expiró (compara el tiempo actual con el límite de 15 segundos)
+            const now = Math.floor(Date.now() / 1000);
+            if (now > parseInt(expires)) {
+                showError("Error: El enlace de un solo uso ha expirado (límite de 15 segundos). Solicita otro.");
+            } else {
+                // Redirigir a Roblox si está dentro del tiempo límite
+                let robloxUri = "";
+                if (code) {
+                    robloxUri = `roblox://navigation/share_links?code=${code}&type=Server`;
+                } else if (placeId && linkCode) {
+                    robloxUri = `roblox://experiences/start?placeId=${placeId}&linkCode=${linkCode}`;
+                }
+
+                if (robloxUri) {
+                    window.location.href = robloxUri;
+                    setTimeout(() => {
+                        window.location.href = robloxUri;
+                    }, 2000);
+                } else {
+                    showError("Error: Datos de sesión inválidos.");
+                }
+            }
         } else {
-            document.querySelector('p').innerText = "Error: No se ha detectado ningún código o servidor activo.";
+            showError("Error: Acceso no autorizado o parámetro de tiempo faltante.");
         }
     </script>
 </body>
