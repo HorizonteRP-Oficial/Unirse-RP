@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciando Sesión...</title>
+    <style>
+        body {
+            background-color: #121212; /* Fondo oscuro similar a Discord */
+            color: #ffffff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border-left-color: #f1c40f; /* Color amarillo del embed */
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h1>HORIZONTE ROLEPLAY</h1>
+        <p>Iniciando Roblox, por favor espera...</p>
+    </div>
+
+    <script>
+        // Extraemos el código que el bot colocó en el botón
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+
+        if (code) {
+            // Creamos el enlace de protocolo directo que inicia Roblox sin usar Google
+            const robloxUri = `roblox://navigation/share_links?code=${code}&type=Server`;
+            
+            // Forzamos la apertura de la aplicación de Roblox
+            window.location.href = robloxUri;
+
+            // Intento secundario por si el navegador bloquea la acción automática
+            setTimeout(() => {
+                window.location.href = robloxUri;
+            }, 2000);
+        } else {
+            document.querySelector('p').innerText = "Error: No se ha detectado ningún código de sesión activo.";
+        }
+    </script>
+</body>
+</html>
