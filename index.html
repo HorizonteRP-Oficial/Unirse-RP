@@ -57,32 +57,50 @@
             document.getElementById('status').style.color = '#ff4d4d';
         }
 
-        if (expires) {
-            // Validar si el enlace ya expiró (compara el tiempo actual con el límite de 15 segundos)
-            const now = Math.floor(Date.now() / 1000);
-            if (now > parseInt(expires)) {
-                showError("Error: El enlace de un solo uso ha expirado (límite de 15 segundos). Solicita otro.");
-            } else {
-                // Redirigir a Roblox si está dentro del tiempo límite
-                let robloxUri = "";
-                if (code) {
-                    robloxUri = `roblox://navigation/share_links?code=${code}&type=Server`;
-                } else if (placeId && linkCode) {
-                    robloxUri = `roblox://experiences/start?placeId=${placeId}&linkCode=${linkCode}`;
-                }
-
-                if (robloxUri) {
-                    window.location.href = robloxUri;
-                    setTimeout(() => {
-                        window.location.href = robloxUri;
-                    }, 2000);
+        async function validarYRedirigir() {
+            let now;
+            try {
+                // Hacemos una consulta HEAD ultrarrápida a nuestra propia página (GitHub)
+                // para obtener la hora del servidor de GitHub y evitar desincronizaciones del reloj local del usuario
+                const response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-cache' });
+                const dateHeader = response.headers.get('date');
+                if (dateHeader) {
+                    now = Math.floor(new Date(dateHeader).getTime() / 1000);
                 } else {
-                    showError("Error: Datos de sesión inválidos.");
+                    now = Math.floor(Date.now() / 1000); // Respaldo si no lee el header
                 }
+            } catch (error) {
+                now = Math.floor(Date.now() / 1000); // Respaldo si falla la red
             }
-        } else {
-            showError("Error: Acceso no autorizado o parámetro de tiempo faltante.");
+
+            if (expires) {
+                // Validar si el enlace ya expiró usando la hora sincronizada
+                if (now > parseInt(expires)) {
+                    showError("⚠️ Este pase de acceso ha caducado por seguridad. Vuelve a presionar el botón verde en Discord para generar uno nuevo.");
+                } else {
+                    // Redirigir a Roblox si está dentro del tiempo límite
+                    let robloxUri = "";
+                    if (code) {
+                        robloxUri = `roblox://navigation/share_links?code=${code}&type=Server`;
+                    } else if (placeId && linkCode) {
+                        robloxUri = `roblox://experiences/start?placeId=${placeId}&linkCode=${linkCode}`;
+                    }
+
+                    if (robloxUri) {
+                        window.location.href = robloxUri;
+                        setTimeout(() => {
+                            window.location.href = robloxUri;
+                        }, 2000);
+                    } else {
+                        showError("Error: Datos de sesión inválidos.");
+                    }
+                }
+            } else {
+                showError("Error: Acceso no autorizado o parámetro de tiempo faltante.");
+            }
         }
+
+        validarYRedirigir();
     </script>
 </body>
 </html>
